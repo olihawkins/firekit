@@ -1,5 +1,5 @@
 """
-PyTorch Dataset and DataLoader.
+Functions for transforming images.
 """
 
 # Imports ---------------------------------------------------------------------
