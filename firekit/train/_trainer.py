@@ -24,7 +24,7 @@ class Trainer():
         optimizer,
         metrics=[],
         best_metric=None,
-        device="auto"):
+        device=None):
 
         # Set known instance properties
         self.model = model
@@ -42,13 +42,15 @@ class Trainer():
         self.monitor = None
 
         # Set up device
-        if device == "auto":
+        if device == None:
             if torch.cuda.is_available():
-                self.device = torch.device("cuda:0" )
+                device = "cuda:0"
             elif torch.backends.mps.is_available():
-                self.device = torch.device("mps" )
+                device = "mps"
             else:
-                self.device = torch.device("cpu")
+                device = "cpu"
+
+        self.device = torch.device(device)
 
     def train(
         self,
@@ -82,7 +84,7 @@ class Trainer():
         for epoch in range(epochs):
             print(f"Epoch {epoch + 1}")
             self.train_epoch()
-            self.evaluate_epoch()
+            self.eval_epoch()
 
         # Restore best weights
         if restore_best_weights == True:
@@ -90,9 +92,7 @@ class Trainer():
 
     def train_epoch(self):
 
-        size = len(self.train_dataloader.dataset)
-        n_batches = int(np.ceil(size / self.train_dataloader.batch_size))
-        counter_size = len(str(n_batches))
+        n_batches = len(self.train_dataloader)
         running_loss = 0
 
         # Loop over batches and backprop gradients       
@@ -117,21 +117,16 @@ class Trainer():
             average_loss = running_loss / batch
             
             # Report status
-            report = \
-                f"Training loss: {average_loss:.4f}  " \
-                f"[{batch:{counter_size}} | {n_batches:{counter_size}}]" \
-                f"         "
-
+            report = self.monitor.eval_update(batch, n_batches, average_loss)
             print(report, end="\r")
 
-    def evaluate_epoch(self):
-    
-        size = len(self.val_dataloader.dataset)
-        num_batches = len(self.val_dataloader)
+    def eval_epoch(self):
+
+        n_batches = len(self.val_dataloader)
+        running_loss = 0 
         targets = []
         predictions = []
-        running_loss = 0 
-
+        
         # Predict and calculate loss (with training processes disabled)
         self.model.eval()
         with torch.no_grad():
@@ -144,11 +139,11 @@ class Trainer():
                 predictions.append(pred.cpu().numpy())
         self.model.train()
 
-        loss = running_loss / num_batches
+        loss = running_loss / n_batches
         targets = np.concatenate(targets)
         predictions = np.concatenate(predictions)
 
-        report = self.monitor.update(loss, targets, predictions)        
+        report = self.monitor.eval_update(loss, targets, predictions)        
         print(report)
 
     def predict(self, dataset):
@@ -198,17 +193,28 @@ class TrainingMonitor():
         else:
             return loss
 
-    def update(self, loss, targets, predictions):
+    def train_update(self, batch, n_batches, average_loss):
+        return self.get_train_report(batch, n_batches, average_loss)
+
+    def train_report(self, batch, n_batches, average_loss):
+        counter_size = len(str(n_batches))
+        report = \
+            f"Training loss: {average_loss:.4f}  " \
+            f"[{batch:{counter_size}} | {n_batches:{counter_size}}]" \
+            f"         "
+        return report
+
+    def eval_update(self, loss, targets, predictions):
         loss_metric = self.get_loss_metric(loss, targets, predictions)
         updated = False
         if loss_metric < self.best_loss_metric:
             self.best_loss_metric = loss_metric
             torch.save(self.model.state_dict(), self.model_path)
             updated = True
-        report = self.get_report(loss, targets, predictions, updated)
+        report = self.eval_report(loss, targets, predictions, updated)
         return report
 
-    def get_report(self, loss, targets, predictions, updated):
+    def eval_report(self, loss, targets, predictions, updated):
         metrics_report = ""
         for metric in self.metrics:
             metrics_report += metric.get_reported_metric(targets, predictions)
