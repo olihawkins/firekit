@@ -1,0 +1,6 @@
+# Directories
+/.venv
+/dist
+
+# Mac files
+**/.DS_Store
