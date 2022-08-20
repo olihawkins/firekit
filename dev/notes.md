@@ -2,10 +2,24 @@
 
 ## Environment
 
-```
+```zsh
 pipenv --three
 pipenv install numpy pandas scikit-learn torch torchvision
 pipenv install --dev ipython build twine
+```
+
+## Build
+
+```zsh
+python -m build
+```
+
+## Publish
+
+Remove old builds from the `dist` folder before uploading.
+
+```zsh
+python -m twine upload dist/*
 ```
 
 ## Cuda
