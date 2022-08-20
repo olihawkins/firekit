@@ -117,7 +117,7 @@ class Trainer():
             average_loss = running_loss / batch
             
             # Report status
-            report = self.monitor.eval_update(batch, n_batches, average_loss)
+            report = self.monitor.train_update(batch, n_batches, average_loss)
             print(report, end="\r")
 
     def eval_epoch(self):
@@ -194,7 +194,7 @@ class TrainingMonitor():
             return loss
 
     def train_update(self, batch, n_batches, average_loss):
-        return self.get_train_report(batch, n_batches, average_loss)
+        return self.train_report(batch, n_batches, average_loss)
 
     def train_report(self, batch, n_batches, average_loss):
         counter_size = len(str(n_batches))
