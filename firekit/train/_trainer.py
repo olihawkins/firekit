@@ -178,7 +178,7 @@ class TrainingMonitor():
         self.model_path = model_path
         self.metrics = metrics
         self.best_metric = self.get_best_metric(metrics, best_metric)
-        self.best_loss_metric = np.inf
+        self.best_metric_loss = np.inf
 
     def get_best_metric(self, metrics, best_metric):
         metrics = {metric.name: metric for metric in metrics}
@@ -187,9 +187,9 @@ class TrainingMonitor():
         else:
             return None
 
-    def get_loss_metric(self, loss, targets, predictions):
+    def get_metric_loss(self, loss, targets, predictions):
         if self.best_metric != None:
-            return self.best_metric.get_loss_metric(targets, predictions)
+            return self.best_metric.get_metric_loss(targets, predictions)
         else:
             return loss
 
@@ -205,10 +205,10 @@ class TrainingMonitor():
         return report
 
     def eval_update(self, loss, targets, predictions):
-        loss_metric = self.get_loss_metric(loss, targets, predictions)
+        metric_loss = self.get_metric_loss(loss, targets, predictions)
         updated = False
-        if loss_metric < self.best_loss_metric:
-            self.best_loss_metric = loss_metric
+        if metric_loss < self.best_metric_loss:
+            self.best_metric_loss = metric_loss
             torch.save(self.model.state_dict(), self.model_path)
             updated = True
         report = self.eval_report(loss, targets, predictions, updated)

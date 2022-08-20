@@ -26,7 +26,7 @@ class Metric:
     def get_metric(self, targets, predictions):
         pass
 
-    def get_loss_metric(self, targets, predictions):
+    def get_metric_loss(self, targets, predictions):
         pass
 
     def get_formatted_metric(self, targets, predictions):
@@ -57,7 +57,7 @@ class Accuracy(Metric):
         predictions = np.round(predictions)
         return accuracy_score(targets.flatten(), predictions.flatten())
 
-    def get_loss_metric(self, targets, predictions):
+    def get_metric_loss(self, targets, predictions):
         return 1. - self.get_metric(targets, predictions)
 
 # Subset accuracy metric class ------------------------------------------------
@@ -80,5 +80,5 @@ class SubsetAccuracy(Metric):
         predictions = np.round(predictions)
         return accuracy_score(targets, predictions)
 
-    def get_loss_metric(self, targets, predictions):
+    def get_metric_loss(self, targets, predictions):
         return 1. - self.get_metric(targets, predictions)
