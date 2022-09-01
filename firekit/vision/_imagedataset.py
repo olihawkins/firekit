@@ -10,7 +10,12 @@ from torch.utils.data import Dataset
 from torchvision.io import read_image
 from torchvision.io import ImageReadMode
 
-# Dataset ---------------------------------------------------------------------
+# ImageReadError ----------------------------------------------------------------
+
+class ImageReadError(Exception):
+    pass
+
+# ImageDataset ----------------------------------------------------------------
 
 class ImageDataset(Dataset):
 
@@ -57,6 +62,6 @@ class ImageDataset(Dataset):
 
             return image, label
 
-        except RuntimeError:
-            msg = f"Could not read {image_path} with mode {self.read_mode}"
-            raise ValueError(msg)
+        except Exception:
+            msg = f"Error reading {image_path}"
+            raise ImageReadError(msg)
