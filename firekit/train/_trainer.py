@@ -59,7 +59,6 @@ class Trainer():
         restore_best_weights=True):
 
         # Set up device
-        print(f"Training on {self.device}\n")
         self.model.to(self.device)
 
         # Create dataloaders
@@ -81,8 +80,8 @@ class Trainer():
             self.best_metric)
 
         # Training loop
-        for epoch in range(epochs):
-            print(f"Epoch {epoch + 1}")
+        for epoch in range(1, epochs + 1):
+            self.monitor.epoch_update(epoch)
             self.train_epoch()
             self.eval_epoch()
 
@@ -116,9 +115,8 @@ class Trainer():
             running_loss += loss
             average_loss = running_loss / batch
             
-            # Report status
-            report = self.monitor.train_update(batch, n_batches, average_loss)
-            print(report, end="\r")
+            # Update and report
+            self.monitor.train_update(batch, n_batches, average_loss)
 
     def eval_epoch(self):
 
@@ -139,14 +137,15 @@ class Trainer():
                 predictions.append(pred.cpu().numpy())
         self.model.train()
 
+        # Get loss, targets and predictions
         loss = running_loss / n_batches
         targets = np.concatenate(targets)
         predictions = np.concatenate(predictions)
 
-        report = self.monitor.eval_update(loss, targets, predictions)        
-        print(report)
+        # Update and report
+        self.monitor.eval_update(loss, targets, predictions)        
 
-    def predict(self, dataset):
+    def test(self, dataset):
         dataloader = DataLoader(dataset)
         targets = []
         predictions = []
@@ -161,7 +160,7 @@ class Trainer():
         self.model.train()
         targets = np.concatenate(targets)
         predictions = np.concatenate(predictions)
-        return targets, predictions
+        self.monitor.test_report(targets, predictions)
 
 # Training monitor class ------------------------------------------------------
 
@@ -193,8 +192,14 @@ class TrainingMonitor():
         else:
             return loss
 
+    def epoch_update(self, epoch):
+        self.epoch_report(epoch)
+
+    def epoch_report(self, epoch):
+        print(f"Epoch {epoch}")
+        
     def train_update(self, batch, n_batches, average_loss):
-        return self.train_report(batch, n_batches, average_loss)
+        self.train_report(batch, n_batches, average_loss)
 
     def train_report(self, batch, n_batches, average_loss):
         counter_size = len(str(n_batches))
@@ -202,7 +207,7 @@ class TrainingMonitor():
             f"Training loss: {average_loss:.4f}  " \
             f"[{batch:{counter_size}} | {n_batches:{counter_size}}]" \
             f"         "
-        return report
+        print(report, end="\r")
 
     def eval_update(self, loss, targets, predictions):
         metric_loss = self.get_metric_loss(loss, targets, predictions)
@@ -211,17 +216,29 @@ class TrainingMonitor():
             self.best_metric_loss = metric_loss
             torch.save(self.model.state_dict(), self.model_path)
             updated = True
-        report = self.eval_report(loss, targets, predictions, updated)
-        return report
+        self.eval_report(loss, targets, predictions, updated)
 
     def eval_report(self, loss, targets, predictions, updated):
         metrics_report = ""
         for metric in self.metrics:
-            metrics_report += metric.get_reported_metric(targets, predictions)
+            metric_report = metric.get_reported_metric(targets, predictions)
+            metrics_report += f", {metric_report}"
         updated_flag = "✓" if updated == True else ""
         report = \
             f"\nEvaluation loss: {loss:.4f}" \
-            f", {metrics_report}" \
+            f" {metrics_report}" \
             f" {updated_flag}" \
             f"         \n"
-        return report
+        print(report)
+
+    def test_report(self, targets, predictions):
+        metrics_report = ""
+        for metric in self.metrics:
+            metric_report = metric.get_reported_metric(targets, predictions)
+            metrics_report += f", {metric_report}"
+        report = \
+            f"Test performance\n" \
+            f"Sample size: {targets.shape[0]}" \
+            f" {metrics_report}" \
+            f"         \n"
+        print(report)

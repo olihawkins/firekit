@@ -7,6 +7,9 @@ Metrics for use during training.
 import numpy as np
 
 from sklearn.metrics import accuracy_score
+from sklearn.metrics import precision_score
+from sklearn.metrics import recall_score
+from sklearn.metrics import f1_score
 
 from firekit.utils import sigmoid
 
@@ -18,10 +21,10 @@ class Metric:
     Base class for metrics.
     """
 
-    def __init__(self):
+    def __init__(self, precision):
         self.name = "metric"
         self.label = "Metric"
-        self.precision = 2
+        self.precision = precision
 
     def get_metric(self, targets, predictions):
         pass
@@ -37,19 +40,33 @@ class Metric:
         formatted_metric = self.get_formatted_metric(targets, predictions)
         return f"{self.label}: {formatted_metric}"
 
+# Classification metric class -------------------------------------------------
+
+class ClassificationMetric(Metric):
+
+    """
+    Base class for classification metrics.
+    """
+
+    def __init__(self, precision, logits):
+        super().__init__(precision)
+        self.logits = logits
+
+    def get_metric_loss(self, targets, predictions):
+        return 1. - self.get_metric(targets, predictions)
+
 # Accuracy metric class -------------------------------------------------------
 
-class Accuracy(Metric):
+class Accuracy(ClassificationMetric):
 
     """
     Accuracy metric class.
     """
 
-    def __init__(self, logits=True):
+    def __init__(self, precision=4, logits=True):
+        super().__init__(precision, logits)
         self.name = "accuracy"
         self.label = "Accuracy"
-        self.precision = 4
-        self.logits = logits
 
     def get_metric(self, targets, predictions):
         if self.logits == True:
@@ -57,22 +74,18 @@ class Accuracy(Metric):
         predictions = np.round(predictions)
         return accuracy_score(targets.flatten(), predictions.flatten())
 
-    def get_metric_loss(self, targets, predictions):
-        return 1. - self.get_metric(targets, predictions)
-
 # Subset accuracy metric class ------------------------------------------------
 
-class SubsetAccuracy(Metric):
+class SubsetAccuracy(ClassificationMetric):
 
     """
     Subset accuracy metric class.
     """
 
-    def __init__(self, logits=True):
+    def __init__(self, precision=4, logits=True):
+        super().__init__(precision, logits)
         self.name = "accuracy"
         self.label = "Accuracy"
-        self.precision = 4
-        self.logits = logits
 
     def get_metric(self, targets, predictions):
         if self.logits == True:
@@ -80,5 +93,59 @@ class SubsetAccuracy(Metric):
         predictions = np.round(predictions)
         return accuracy_score(targets, predictions)
 
-    def get_metric_loss(self, targets, predictions):
-        return 1. - self.get_metric(targets, predictions)
+# Precision metric class ------------------------------------------------------
+
+class Precision(ClassificationMetric):
+
+    """
+    Precision metric class.
+    """
+
+    def __init__(self, precision=4, logits=True):
+        super().__init__(precision, logits)
+        self.name = "precision"
+        self.label = "Precision"
+
+    def get_metric(self, targets, predictions):
+        if self.logits == True:
+            predictions = sigmoid(predictions)
+        predictions = np.round(predictions)
+        return precision_score(targets, predictions)
+
+# Recall metric class ---------------------------------------------------------
+
+class Recall(ClassificationMetric):
+
+    """
+    Recall metric class.
+    """
+
+    def __init__(self, precision=4, logits=True):
+        super().__init__(precision, logits)
+        self.name = "recall"
+        self.label = "Recall"
+
+    def get_metric(self, targets, predictions):
+        if self.logits == True:
+            predictions = sigmoid(predictions)
+        predictions = np.round(predictions)
+        return recall_score(targets, predictions)
+
+# Recall metric class ---------------------------------------------------------
+
+class F1(ClassificationMetric):
+
+    """
+    F1 score metric class.
+    """
+
+    def __init__(self, precision=4, logits=True):
+        super().__init__(precision, logits)
+        self.name = "f1_score"
+        self.label = "F1 Score"
+
+    def get_metric(self, targets, predictions):
+        if self.logits == True:
+            predictions = sigmoid(predictions)
+        predictions = np.round(predictions)
+        return f1_score(targets, predictions)
