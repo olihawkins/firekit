@@ -51,15 +51,20 @@ class Trainer():
                 device = "cpu"
 
         self.device = torch.device(device)
+        self.model.to(self.device)
+
+        # Set up training monitor
+        self.monitor = TrainingMonitor(
+            self.model,
+            self.model_path,
+            self.metrics,
+            self.best_metric)
 
     def train(
         self,
         batch_size,
         epochs,
         restore_best_weights=True):
-
-        # Set up device
-        self.model.to(self.device)
 
         # Create dataloaders
         self.train_dataloader = DataLoader(
@@ -71,13 +76,6 @@ class Trainer():
             self.val_dataset, 
             batch_size=batch_size, 
             shuffle=True)
-
-        # Set up training monitor
-        self.monitor = TrainingMonitor(
-            self.model,
-            self.model_path,
-            self.metrics,
-            self.best_metric)
 
         # Training loop
         for epoch in range(1, epochs + 1):
@@ -226,7 +224,7 @@ class TrainingMonitor():
         updated_flag = "✓" if updated == True else ""
         report = \
             f"\nEvaluation loss: {loss:.4f}" \
-            f" {metrics_report}" \
+            f"{metrics_report}" \
             f" {updated_flag}" \
             f"         \n"
         print(report)
@@ -239,6 +237,6 @@ class TrainingMonitor():
         report = \
             f"Test performance\n" \
             f"Sample size: {targets.shape[0]}" \
-            f" {metrics_report}" \
+            f"{metrics_report}" \
             f"         \n"
         print(report)
