@@ -85,7 +85,7 @@ class SubsetAccuracy(ClassificationMetric):
     def __init__(self, precision=4, logits=True):
         super().__init__(precision, logits)
         self.name = "accuracy"
-        self.label = "Accuracy"
+        self.label = "Subset accuracy"
 
     def get_metric(self, targets, predictions):
         if self.logits == True:
@@ -142,7 +142,7 @@ class F1(ClassificationMetric):
     def __init__(self, precision=4, logits=True):
         super().__init__(precision, logits)
         self.name = "f1_score"
-        self.label = "F1 Score"
+        self.label = "F1 score"
 
     def get_metric(self, targets, predictions):
         if self.logits == True:
