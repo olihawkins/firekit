@@ -238,5 +238,5 @@ class TrainingMonitor():
             f"Test performance\n" \
             f"Sample size: {targets.shape[0]}" \
             f"{metrics_report}" \
-            f"         \n"
+            f"         "
         print(report)
