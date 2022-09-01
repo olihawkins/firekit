@@ -40,16 +40,23 @@ class ImageDataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, idx):
-        
-        image_path = self.data.iloc[idx, 0]
-        image_label = self.data.iloc[idx, 1]
-        image = read_image(image_path, self.read_mode).type(torch.float32)
-        label = torch.tensor(image_label, dtype=torch.float32).unsqueeze(0)
-        
-        if self.transform:
-            image = self.transform(image)
-        
-        if self.target_transform:
-            label = self.target_transform(label)
-        
-        return image, label
+
+        try:
+
+            image_path = self.data.iloc[idx, 0]
+            image_label = self.data.iloc[idx, 1]
+
+            image = read_image(image_path, self.read_mode).type(torch.float32)
+            label = torch.tensor(image_label, dtype=torch.float32).unsqueeze(0)
+            
+            if self.transform:
+                image = self.transform(image)
+            
+            if self.target_transform:
+                label = self.target_transform(label)
+
+            return image, label
+
+        except RuntimeError:
+            msg = f"Could not read {image_path} with mode {self.read_mode}"
+            raise ValueError(msg)
