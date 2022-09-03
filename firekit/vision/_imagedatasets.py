@@ -4,20 +4,22 @@ ImageDataset class.
 
 # Imports ---------------------------------------------------------------------
 
+import os
+import pandas as pd
 import torch
 
 from torch.utils.data import Dataset
 from torchvision.io import read_image
 from torchvision.io import ImageReadMode
 
-# ImageReadError ----------------------------------------------------------------
+# ImageReadError --------------------------------------------------------------
 
 class ImageReadError(Exception):
     pass
 
-# ImageDataset ----------------------------------------------------------------
+# ImagePathDataset ------------------------------------------------------------
 
-class ImageDataset(Dataset):
+class ImagePathDataset(Dataset):
 
     def __init__(
         self, 
@@ -49,19 +51,41 @@ class ImageDataset(Dataset):
         try:
 
             image_path = self.data.iloc[idx, 0]
-            image_label = self.data.iloc[idx, 1]
+            image_labels = self.data.iloc[idx, 1:]
 
             image = read_image(image_path, self.read_mode).type(torch.float32)
-            label = torch.tensor(image_label, dtype=torch.float32).unsqueeze(0)
+            labels = torch.tensor(image_labels, dtype=torch.float32)
             
             if self.transform:
                 image = self.transform(image)
             
             if self.target_transform:
-                label = self.target_transform(label)
+                labels = self.target_transform(label)
 
-            return image, label
+            return image, labels
 
-        except Exception:
-            msg = f"Error reading {image_path}"
+        except Exception as error:
+            msg = f"Error reading {image_path}: {error}"
             raise ImageReadError(msg)
+
+    @classmethod
+    def create_unlabelled(
+        cls,
+        dir_path,
+        read_mode=None,
+        transform=None, 
+        target_transform=None):
+
+        files = []
+        for f in os.listdir(dir_path):
+            if not f.startswith("."):
+                files.append(os.path.join(dir_path, f))
+
+        data = pd.DataFrame({"path": files, "label": -1})
+
+        return cls(
+            data, 
+            read_mode=read_mode,
+            transform=transform,
+            target_transform=target_transform)
+

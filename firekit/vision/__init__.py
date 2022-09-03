@@ -1,7 +1,7 @@
 from firekit.vision import transforms
-from firekit.vision._imagedataset import ImageDataset
+from firekit.vision._imagedatasets import ImagePathDataset
 
 __all__ = [
   "transforms",
-  "ImageDataset"
+  "ImagePathDataset"
 ] 

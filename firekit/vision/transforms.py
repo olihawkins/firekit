@@ -14,7 +14,6 @@ class SquarePad:
     
     """
     Pad an image with zeros to the length of the longest dimension.
-    
     """
     
     def __call__(self, image):
