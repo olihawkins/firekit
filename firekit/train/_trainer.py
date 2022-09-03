@@ -9,6 +9,8 @@ import torch
 
 from torch.utils.data import DataLoader
 
+from firekit.utils import get_device
+
 # Trainer class ---------------------------------------------------------------
 
 class Trainer():
@@ -41,15 +43,7 @@ class Trainer():
         self.monitor = None
 
         # Set up device
-        if device == None:
-            if torch.cuda.is_available():
-                device = "cuda:0"
-            elif torch.backends.mps.is_available():
-                device = "mps"
-            else:
-                device = "cpu"
-
-        self.device = torch.device(device)
+        self.device = torch.device(get_device(device))
         self.model.to(self.device)
 
         # Set up training monitor
@@ -142,8 +136,11 @@ class Trainer():
         # Update and report
         self.monitor.eval_update(loss, targets, predictions)        
 
-    def test(self, dataset):
-        dataloader = DataLoader(dataset)
+    def test(self, dataset, batch_size):
+        dataloader = DataLoader(
+            dataset, 
+            batch_size=batch_size,
+            shuffle=False)
         targets = []
         predictions = []
         self.model.eval()

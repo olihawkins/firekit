@@ -52,7 +52,6 @@ class ImagePathDataset(Dataset):
 
             image_path = self.data.iloc[idx, 0]
             image_labels = self.data.iloc[idx, 1:]
-
             image = read_image(image_path, self.read_mode).type(torch.float32)
             labels = torch.tensor(image_labels, dtype=torch.float32)
             
@@ -73,19 +72,15 @@ class ImagePathDataset(Dataset):
         cls,
         dir_path,
         read_mode=None,
-        transform=None, 
-        target_transform=None):
+        transform=None):
 
         files = []
         for f in os.listdir(dir_path):
             if not f.startswith("."):
                 files.append(os.path.join(dir_path, f))
-
         data = pd.DataFrame({"path": files, "label": -1})
 
         return cls(
             data, 
             read_mode=read_mode,
-            transform=transform,
-            target_transform=target_transform)
-
+            transform=transform)
