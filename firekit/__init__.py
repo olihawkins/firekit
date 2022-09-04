@@ -1,12 +1,14 @@
-from firekit import data
 from firekit import evaluate
+from firekit import predict
+from firekit import preprocess
 from firekit import train
 from firekit import utils
 from firekit import vision
 
 __all__ = [
-  "data",
   "evaluate",
+  "predict",
+  "preprocess"
   "train",
   "utils",
   "vision"
