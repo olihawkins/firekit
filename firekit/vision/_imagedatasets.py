@@ -59,7 +59,7 @@ class ImagePathDataset(Dataset):
                 image = self.transform(image)
             
             if self.target_transform:
-                labels = self.target_transform(label)
+                labels = self.target_transform(labels)
 
             return image, labels
 
