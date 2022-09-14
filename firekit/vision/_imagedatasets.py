@@ -31,17 +31,7 @@ class ImagePathDataset(Dataset):
         self.data = data
         self.transform = transform
         self.target_transform = target_transform
-
-        if read_mode == "GRAY":
-            self.read_mode = ImageReadMode.GRAY
-        elif read_mode == "GRAY_ALPHA":
-            self.read_mode = ImageReadMode.GRAY_ALPHA
-        elif read_mode == "RGB":
-            self.read_mode = ImageReadMode.RGB
-        elif read_mode == "RGB_ALPHA":
-            self.read_mode = ImageReadMode.RGB_ALPHA
-        else:
-            self.read_mode = ImageReadMode.UNCHANGED
+        self.read_mode = self.get_read_mode(read_mode)
 
     def __len__(self):
         return len(self.data)
@@ -68,19 +58,61 @@ class ImagePathDataset(Dataset):
             raise ImageReadError(msg)
 
     @classmethod
-    def create_unlabelled(
+    def get_read_mode(cls, read_mode):
+        if read_mode == "GRAY":
+            read_mode = ImageReadMode.GRAY
+        elif read_mode == "GRAY_ALPHA":
+            read_mode = ImageReadMode.GRAY_ALPHA
+        elif read_mode == "RGB":
+            read_mode = ImageReadMode.RGB
+        elif read_mode == "RGB_ALPHA":
+            read_mode = ImageReadMode.RGB_ALPHA
+        else:
+            read_mode = ImageReadMode.UNCHANGED
+        return read_mode
+
+    @classmethod
+    def create_unlabelled_dataset(
         cls,
         dir_path,
         read_mode=None,
-        transform=None):
+        transform=None,
+        skip_files=[],
+        skip_unreadable=False):
 
+        # Add unreadable files to skip_files
+        if skip_unreadable == True:
+            skip_files += cls.find_unreadable_images(
+                dir_path=dir_path, 
+                read_mode=read_mode)
+        
+        # Create a dataframe of paths to images
         files = []
         for f in os.listdir(dir_path):
-            if not f.startswith("."):
+            if not f.startswith(".") and not f in skip_files:
                 files.append(os.path.join(dir_path, f))
         data = pd.DataFrame({"path": files, "label": -1})
 
+        # Create and return a dataset
         return cls(
             data, 
             read_mode=read_mode,
             transform=transform)
+
+    @classmethod
+    def find_unreadable_images(
+        cls, 
+        dir_path, 
+        read_mode=None):
+        
+        read_mode = cls.get_read_mode(read_mode)
+        unreadable_images = []
+        for f in os.listdir(dir_path):
+            if not f.startswith("."):
+                try:
+                    image_path = os.path.join(dir_path, f)
+                    _ = read_image(image_path, read_mode)
+                except Exception as error:
+                    unreadable_images.append(f)
+                    continue
+        return unreadable_images
