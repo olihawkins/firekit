@@ -30,7 +30,7 @@ shapes_df = pd.read_csv(LABELS_CSV).iloc[:, 0:4].reset_index(drop=True)
 class CreateImageDataset(unittest.TestCase):
 
     """
-    Test that ImagePathDataset can be created.
+    Test that ImagePathDataset is correctly created.
     """
 
     def test_image_path_dataset_is_created_with_dataframe(self):
