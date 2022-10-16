@@ -1,5 +1,5 @@
 """
-ImageDataset class.
+Image dataset classes.
 """
 
 # Imports ---------------------------------------------------------------------
