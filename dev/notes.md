@@ -3,7 +3,7 @@
 ## Environment
 
 ```zsh
-pipenv --three
+pipenv install
 pipenv install numpy pandas scikit-learn torch torchvision
 pipenv install --dev ipython build twine
 ```
