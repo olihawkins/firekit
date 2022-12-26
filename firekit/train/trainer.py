@@ -154,7 +154,7 @@ class Trainer():
         self.model.train()
         targets = np.concatenate(targets)
         predictions = np.concatenate(predictions)
-        self.monitor.test_report(targets, predictions)
+        self.monitor.test_update(targets, predictions)
 
 # Training monitor class ------------------------------------------------------
 
@@ -224,6 +224,9 @@ class TrainingMonitor():
             f" {updated_flag}" \
             f"         \n"
         print(report)
+
+    def test_update(self, targets, predictions):
+        self.test_report(targets, predictions)
 
     def test_report(self, targets, predictions):
         metrics_report = ""

@@ -110,7 +110,7 @@ class Precision(ClassificationMetric):
         if self.logits == True:
             predictions = sigmoid(predictions)
         predictions = np.round(predictions)
-        return precision_score(targets, predictions)
+        return precision_score(targets, predictions, zero_division=0)
 
 # Recall metric class ---------------------------------------------------------
 
@@ -129,7 +129,7 @@ class Recall(ClassificationMetric):
         if self.logits == True:
             predictions = sigmoid(predictions)
         predictions = np.round(predictions)
-        return recall_score(targets, predictions)
+        return recall_score(targets, predictions, zero_division=0)
 
 # Recall metric class ---------------------------------------------------------
 
@@ -148,4 +148,4 @@ class F1(ClassificationMetric):
         if self.logits == True:
             predictions = sigmoid(predictions)
         predictions = np.round(predictions)
-        return f1_score(targets, predictions)
+        return f1_score(targets, predictions, zero_division=0)
