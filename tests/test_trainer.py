@@ -1,5 +1,6 @@
 """
-Test trainer.
+This file contains unit tests for the Trainer class and integration tests that 
+run the Trainer with a known model and dataset.
 """
 
 # Imports ---------------------------------------------------------------------
@@ -14,8 +15,6 @@ import torch.optim as optim
 from torchvision.transforms import Compose
 from torchvision.transforms import Normalize
 from torchvision.transforms import Resize
-from torchvision.transforms import ColorJitter
-from torchvision.transforms import RandomErasing
 from torchvision.transforms import RandomHorizontalFlip
 from torchvision.transforms import RandomVerticalFlip
 
@@ -49,35 +48,6 @@ class BinaryCNN(nn.Module):
         self.conv1 = nn.Conv2d(3, 64, 7, padding="same")
         self.conv2 = nn.Conv2d(64, 128, 5, padding="same")
         self.conv3 = nn.Conv2d(128, 128, 3, padding="same")
-        self.fc1 = nn.Linear(128 * 62 * 62, 64)
-        self.fc2 = nn.Linear(64, 1)
-
-    def forward(self, x):
-        x = F.relu(self.conv1(x))
-        x = F.max_pool2d(x, 2)
-        x = F.relu(self.conv2(x))
-        x = F.max_pool2d(x, 2)
-        x = F.relu(self.conv3(x))
-        x = F.max_pool2d(x, 2)
-        x = torch.flatten(x, 1)
-        x = F.relu(self.fc1(x))
-        x = self.dropout(x)
-        x = self.fc2(x)
-        return x
-
-class SchemeTwoCNN(nn.Module):
-
-    """
-    A deep CNN with three sets of convolution layers separated by pooling. 
-    Use learning rate of 0.00001 and batch size of 16.
-    """
-
-    def __init__(self):
-        super().__init__()
-        self.dropout = nn.Dropout(0.2)
-        self.conv1 = nn.Conv2d(3, 64, 7, padding="same")
-        self.conv2 = nn.Conv2d(64, 128, 5, padding="same")
-        self.conv3 = nn.Conv2d(128, 128, 3, padding="same")
         self.conv4 = nn.Conv2d(128, 256, 3, padding="same")
         self.conv5 = nn.Conv2d(256, 256, 3, padding="same")
         self.fc1 = nn.Linear(256 * 62 * 62, 128)
@@ -101,15 +71,12 @@ class SchemeTwoCNN(nn.Module):
         x = self.fc3(x)
         return x
 
-
 # Example transforms ----------------------------------------------------------
 
 def get_train_transform():
     return Compose([
-        ColorJitter(),
         RandomHorizontalFlip(),
         RandomVerticalFlip(),
-        RandomErasing(),
         SquarePad(),
         Resize((500, 500)),
         Normalize(
@@ -126,13 +93,11 @@ def get_predict_transform():
 
 # Example training run --------------------------------------------------------
 
-def train_binary_cnn():
+def train_binary_cnn(target="square", epochs=3):
 
     # Split data
     df = pd.read_csv(DATASET_CSV)
-    df = df[["filename", "circle"]].reset_index(drop=True)
-    df["filename"] = df["filename"].str.replace(
-        "image_", "tests/datasets/shapes/images/image_")
+    df = df[["filename", target]]
     train_df, val_df, test_df = split_dataframe(df, 0.75, 0.125)
 
     # Get datasets
@@ -172,7 +137,7 @@ def train_binary_cnn():
         best_metric=None)
 
     # Train
-    trainer.train(batch_size=16, epochs=6)
+    trainer.train(batch_size=16, epochs=epochs)
 
     # Test
     trainer.test(test_dataset, batch_size=16)

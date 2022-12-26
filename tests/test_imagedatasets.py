@@ -1,5 +1,5 @@
 """
-Test image datasets.
+Unit tests for image datasets.
 """
 
 # Imports ---------------------------------------------------------------------
