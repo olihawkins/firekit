@@ -22,6 +22,8 @@ Remove old builds from the `dist` folder before uploading.
 python -m twine upload dist/*
 ```
 
+See [Packaging Python Projects](https://packaging.python.org/en/latest/tutorials/packaging-projects/) for more details.
+
 ## Cuda
 
 Use `--extra-index-url CUDA_URL` to install the package with CUDA version of PyTorch.
