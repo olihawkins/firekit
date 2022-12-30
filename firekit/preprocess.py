@@ -8,7 +8,7 @@ import numpy as np
 
 # Split dataframe -------------------------------------------------------------
 
-def split_dataframe(
+def split_pandas(
     df,
     train_size,
     val_size):

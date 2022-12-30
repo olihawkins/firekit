@@ -19,7 +19,7 @@ from torchvision.transforms import Resize
 from torchvision.transforms import RandomHorizontalFlip
 from torchvision.transforms import RandomVerticalFlip
 
-from firekit.preprocess import split_dataframe
+from firekit.preprocess import split_pandas
 from firekit.train import Trainer
 from firekit.train.metrics import BinaryAccuracy
 from firekit.train.metrics import BinaryPrecision
@@ -137,7 +137,7 @@ def train_binary_cnn(epochs=3):
     # Prepare data
     df = pd.read_csv(DATASET_CSV)
     df = df[["filename", "square"]]
-    train_df, val_df, test_df = split_dataframe(df, 0.75, 0.125)
+    train_df, val_df, test_df = split_pandas(df, 0.75, 0.125)
 
     # Get datasets
     train_dataset = ImagePathDataset(
@@ -191,7 +191,7 @@ def train_multiclass_cnn(epochs=2):
     argmax = lambda row: np.argmax(row)
     df["color"] = df[["red", "green", "blue"]].apply(argmax, axis=1)
     df = df[["filename", "color"]]
-    train_df, val_df, test_df = split_dataframe(df, 0.75, 0.125)
+    train_df, val_df, test_df = split_pandas(df, 0.75, 0.125)
 
     # Get datasets
     train_dataset = MulticlassImagePathDataset(
@@ -223,58 +223,6 @@ def train_multiclass_cnn(epochs=2):
         loss_func=loss_func,
         optimizer=optimizer,
         metrics=[MulticlassAccuracy()],
-        best_metric=None)
-
-    # Train
-    trainer.train(batch_size=16, epochs=epochs)
-
-    # Test
-    trainer.test(test_dataset, batch_size=16)
-
-# Alternative multiclass CNN specification ------------------------------------
-
-def train_multiclass_cnn_alt(epochs=10):
-
-    # Split data
-    df = pd.read_csv(DATASET_CSV)
-    df = df[["filename", "red", "green", "blue"]]
-    train_df, val_df, test_df = split_dataframe(df, 0.75, 0.125)
-
-    # Get datasets
-    train_dataset = ImagePathDataset(
-        train_df,
-        read_mode="RGB",
-        transform=get_train_transform())
-
-    val_dataset = ImagePathDataset(
-        val_df,
-        read_mode="RGB",
-        transform=get_predict_transform())
-
-    test_dataset = ImagePathDataset(
-        test_df,
-        read_mode="RGB",
-        transform=get_predict_transform())
-
-    # Create model and optimizer
-    model = MulticlassCNN()
-    optimizer = optim.Adam(model.parameters(), lr=0.0001)
-
-    # Create a loss function for one-hot multiclass targets
-    def one_hot_cross_entropy_loss(logits, targets):
-        criterion = nn.CrossEntropyLoss()
-        labels = torch.argmax(targets, dim=1)
-        return criterion(logits, labels)
-
-    # Create trainer
-    trainer = Trainer(
-        model=model,
-        model_path=MULTICLASS_CNN_PATH,
-        train_dataset=train_dataset,
-        val_dataset=val_dataset,
-        loss_func=one_hot_cross_entropy_loss,
-        optimizer=optimizer,
-        metrics=[],
         best_metric=None)
 
     # Train
