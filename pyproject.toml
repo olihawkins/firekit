@@ -36,5 +36,5 @@ exclude = [
   "/.venv",
   "/dev",
   "/dist",
-  "/test"
+  "/tests"
 ]
