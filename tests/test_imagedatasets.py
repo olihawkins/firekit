@@ -13,7 +13,7 @@ from torchvision.io import ImageReadMode
 from torchvision.io import read_image
 from torchvision.transforms import Resize
 
-from firekit.vision import ImagePathDataset
+from firekit.vision.imagedatasets import ImagePathDataset
 
 # Constants -------------------------------------------------------------------
 

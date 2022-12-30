@@ -15,6 +15,11 @@ def sigmoid(logits):
         warnings.simplefilter("ignore")
         return 1 / (1 + np.exp(-1 * logits))
 
+def softmax(logits):
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        return np.exp(logits) / sum(np.exp(logits))
+
 def get_device(device=None):
     if device == None:
         if torch.cuda.is_available():

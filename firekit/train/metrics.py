@@ -12,6 +12,7 @@ from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
 
 from firekit.utils import sigmoid
+from firekit.utils import softmax
 
 # Base metric class -----------------------------------------------------------
 
@@ -55,12 +56,12 @@ class ClassificationMetric(Metric):
     def get_metric_loss(self, targets, predictions):
         return 1. - self.get_metric(targets, predictions)
 
-# Accuracy metric class -------------------------------------------------------
+# Accuracy --------------------------------------------------------------------
 
 class Accuracy(ClassificationMetric):
 
     """
-    Accuracy metric class.
+    Accuracy metric for binary classification.
     """
 
     def __init__(self, precision=4, logits=True):
@@ -74,12 +75,31 @@ class Accuracy(ClassificationMetric):
         predictions = np.round(predictions)
         return accuracy_score(targets.flatten(), predictions.flatten())
 
-# Subset accuracy metric class ------------------------------------------------
+# Multiclass accuracy ---------------------------------------------------------
+
+class MulticlassAccuracy(ClassificationMetric):
+
+    """
+    Accuracy metric for multiclass classification.
+    """
+
+    def __init__(self, precision=4, logits=True):
+        super().__init__(precision, logits)
+        self.name = "accuracy"
+        self.label = "Accuracy"
+
+    def get_metric(self, targets, predictions):
+        if self.logits == True:
+            predictions = softmax(predictions)
+        predictions = np.argmax(predictions, axis=1)
+        return accuracy_score(targets, predictions)
+
+# Subset accuracy -------------------------------------------------------------
 
 class SubsetAccuracy(ClassificationMetric):
 
     """
-    Subset accuracy metric class.
+    Subset accuracy metric.
     """
 
     def __init__(self, precision=4, logits=True):
@@ -93,7 +113,7 @@ class SubsetAccuracy(ClassificationMetric):
         predictions = np.round(predictions)
         return accuracy_score(targets, predictions)
 
-# Precision metric class ------------------------------------------------------
+# Precision -------------------------------------------------------------------
 
 class Precision(ClassificationMetric):
 
@@ -112,12 +132,12 @@ class Precision(ClassificationMetric):
         predictions = np.round(predictions)
         return precision_score(targets, predictions, zero_division=0)
 
-# Recall metric class ---------------------------------------------------------
+# Recall ----------------------------------------------------------------------
 
 class Recall(ClassificationMetric):
 
     """
-    Recall metric class.
+    Recall metric.
     """
 
     def __init__(self, precision=4, logits=True):
@@ -131,12 +151,12 @@ class Recall(ClassificationMetric):
         predictions = np.round(predictions)
         return recall_score(targets, predictions, zero_division=0)
 
-# Recall metric class ---------------------------------------------------------
+# F1 score --------------------------------------------------------------------
 
 class F1(ClassificationMetric):
 
     """
-    F1 score metric class.
+    F1 score metric.
     """
 
     def __init__(self, precision=4, logits=True):

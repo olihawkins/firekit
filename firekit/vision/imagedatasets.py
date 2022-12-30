@@ -12,7 +12,7 @@ from torch.utils.data import Dataset
 from torchvision.io import read_image
 from torchvision.io import ImageReadMode
 
-# ImageReadError --------------------------------------------------------------
+# Errors ----------------------------------------------------------------------
 
 class ImageReadError(Exception):
     pass
@@ -41,10 +41,9 @@ class ImagePathDataset(Dataset):
         try:
 
             image_path = self.data.iloc[idx, 0]
-            image_labels = self.data.iloc[idx, 1:]
             image = read_image(image_path, self.read_mode).type(torch.float32)
-            labels = torch.tensor(image_labels, dtype=torch.float32)
-            
+            labels = self.get_labels(idx)
+                            
             if self.transform:
                 image = self.transform(image)
             
@@ -56,6 +55,9 @@ class ImagePathDataset(Dataset):
         except Exception as error:
             msg = f"Error reading {image_path}: {error}"
             raise ImageReadError(msg)
+
+    def get_labels(self, idx):
+        return torch.tensor(self.data.iloc[idx, 1:], dtype=torch.float32)
 
     @classmethod
     def get_read_mode(cls, read_mode):
@@ -116,3 +118,23 @@ class ImagePathDataset(Dataset):
                     unreadable_images.append(f)
                     continue
         return unreadable_images
+
+# MulticlassImagePathDataset --------------------------------------------------
+
+class MulticlassImagePathDataset(ImagePathDataset):
+    
+    def __init__(
+        self, 
+        data, 
+        read_mode=None,
+        transform=None, 
+        target_transform=None):
+
+        super().__init__(
+            data, 
+            read_mode,
+            transform, 
+            target_transform)
+
+    def get_labels(self, idx):
+        return self.data.iloc[idx, 1]
