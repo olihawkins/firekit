@@ -132,7 +132,7 @@ def get_predict_transform():
 
 # Train binary CNN classifier -------------------------------------------------
 
-def train_binary_cnn(epochs=3):
+def train_binary_cnn(epochs=4):
 
     # Prepare data
     df = pd.read_csv(DATASET_CSV)
@@ -183,7 +183,7 @@ def train_binary_cnn(epochs=3):
 
 # Train multiclass CNN classifier ---------------------------------------------
 
-def train_multiclass_cnn(epochs=2):
+def train_multiclass_cnn(epochs=4):
 
     # Prepare data
     df = pd.read_csv(DATASET_CSV)
