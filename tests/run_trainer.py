@@ -21,11 +21,11 @@ from torchvision.transforms import RandomVerticalFlip
 
 from firekit.preprocess import split_dataframe
 from firekit.train import Trainer
-from firekit.train.metrics import Accuracy
+from firekit.train.metrics import BinaryAccuracy
+from firekit.train.metrics import BinaryPrecision
+from firekit.train.metrics import BinaryRecall
+from firekit.train.metrics import BinaryF1
 from firekit.train.metrics import MulticlassAccuracy
-from firekit.train.metrics import Precision
-from firekit.train.metrics import Recall
-from firekit.train.metrics import F1
 from firekit.vision import ImagePathDataset
 from firekit.vision import MulticlassImagePathDataset
 from firekit.vision.transforms import SquarePad
@@ -169,10 +169,10 @@ def train_binary_cnn(epochs=3):
         loss_func=loss_func,
         optimizer=optimizer,
         metrics=[
-            Accuracy(),
-            Precision(),
-            Recall(),
-            F1()],
+            BinaryAccuracy(),
+            BinaryPrecision(),
+            BinaryRecall(),
+            BinaryF1()],
         best_metric=None)
 
     # Train
@@ -183,7 +183,7 @@ def train_binary_cnn(epochs=3):
 
 # Train multiclass CNN classifier ---------------------------------------------
 
-def train_multiclass_cnn(epochs=20):
+def train_multiclass_cnn(epochs=2):
 
     # Prepare data
     df = pd.read_csv(DATASET_CSV)

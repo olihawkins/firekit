@@ -4,7 +4,6 @@ Trainer classes.
 
 # Imports ---------------------------------------------------------------------
 
-import numpy as np
 import torch
 
 from torch.utils.data import DataLoader
@@ -124,14 +123,14 @@ class Trainer():
                 y = y.to(self.device)
                 pred = self.model(x)
                 running_loss += self.loss_func(pred, y).item()
-                targets.append(y.cpu().numpy())
-                predictions.append(pred.cpu().numpy())
+                targets.append(y)
+                predictions.append(pred)
         self.model.train()
 
         # Get loss, targets and predictions
         loss = running_loss / n_batches
-        targets = np.concatenate(targets)
-        predictions = np.concatenate(predictions)
+        targets = torch.cat(targets)
+        predictions = torch.cat(predictions)
 
         # Update and report
         self.monitor.eval_update(loss, targets, predictions)        
@@ -149,11 +148,11 @@ class Trainer():
                 x = x.to(self.device)
                 y = y.to(self.device)
                 pred = self.model(x)
-                targets.append(y.cpu().numpy())
-                predictions.append(pred.cpu().numpy())
+                targets.append(y)
+                predictions.append(pred)
         self.model.train()
-        targets = np.concatenate(targets)
-        predictions = np.concatenate(predictions)
+        targets = torch.cat(targets)
+        predictions = torch.cat(predictions)
         self.monitor.test_update(targets, predictions)
 
 # Training monitor class ------------------------------------------------------
@@ -171,7 +170,7 @@ class TrainingMonitor():
         self.model_path = model_path
         self.metrics = metrics
         self.best_metric = self.get_best_metric(metrics, best_metric)
-        self.best_metric_loss = np.inf
+        self.best_metric_loss = torch.inf
 
     def get_best_metric(self, metrics, best_metric):
         metrics = {metric.name: metric for metric in metrics}

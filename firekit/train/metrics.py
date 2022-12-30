@@ -41,6 +41,11 @@ class Metric:
         formatted_metric = self.get_formatted_metric(targets, predictions)
         return f"{self.label}: {formatted_metric}"
 
+    def to_numpy(self, targets, predictions):
+        targets = targets.cpu().numpy()
+        predictions = predictions.cpu().numpy()
+        return targets, predictions
+
 # Classification metric class -------------------------------------------------
 
 class ClassificationMetric(Metric):
@@ -56,9 +61,9 @@ class ClassificationMetric(Metric):
     def get_metric_loss(self, targets, predictions):
         return 1. - self.get_metric(targets, predictions)
 
-# Accuracy --------------------------------------------------------------------
+# Binary accuracy -------------------------------------------------------------
 
-class Accuracy(ClassificationMetric):
+class BinaryAccuracy(ClassificationMetric):
 
     """
     Accuracy metric for binary classification.
@@ -70,6 +75,7 @@ class Accuracy(ClassificationMetric):
         self.label = "Accuracy"
 
     def get_metric(self, targets, predictions):
+        targets, predictions = self.to_numpy(targets, predictions)
         if self.logits == True:
             predictions = sigmoid(predictions)
         predictions = np.round(predictions)
@@ -89,6 +95,7 @@ class MulticlassAccuracy(ClassificationMetric):
         self.label = "Accuracy"
 
     def get_metric(self, targets, predictions):
+        targets, predictions = self.to_numpy(targets, predictions)
         if self.logits == True:
             predictions = softmax(predictions)
         predictions = np.argmax(predictions, axis=1)
@@ -108,14 +115,15 @@ class SubsetAccuracy(ClassificationMetric):
         self.label = "Subset accuracy"
 
     def get_metric(self, targets, predictions):
+        targets, predictions = self.to_numpy(targets, predictions)
         if self.logits == True:
             predictions = sigmoid(predictions)
         predictions = np.round(predictions)
         return accuracy_score(targets, predictions)
 
-# Precision -------------------------------------------------------------------
+# Binary precision ------------------------------------------------------------
 
-class Precision(ClassificationMetric):
+class BinaryPrecision(ClassificationMetric):
 
     """
     Precision metric class.
@@ -127,14 +135,15 @@ class Precision(ClassificationMetric):
         self.label = "Precision"
 
     def get_metric(self, targets, predictions):
+        targets, predictions = self.to_numpy(targets, predictions)
         if self.logits == True:
             predictions = sigmoid(predictions)
         predictions = np.round(predictions)
         return precision_score(targets, predictions, zero_division=0)
 
-# Recall ----------------------------------------------------------------------
+# Binary recall ---------------------------------------------------------------
 
-class Recall(ClassificationMetric):
+class BinaryRecall(ClassificationMetric):
 
     """
     Recall metric.
@@ -146,14 +155,15 @@ class Recall(ClassificationMetric):
         self.label = "Recall"
 
     def get_metric(self, targets, predictions):
+        targets, predictions = self.to_numpy(targets, predictions)
         if self.logits == True:
             predictions = sigmoid(predictions)
         predictions = np.round(predictions)
         return recall_score(targets, predictions, zero_division=0)
 
-# F1 score --------------------------------------------------------------------
+# Binary F1 score -------------------------------------------------------------
 
-class F1(ClassificationMetric):
+class BinaryF1(ClassificationMetric):
 
     """
     F1 score metric.
@@ -165,6 +175,7 @@ class F1(ClassificationMetric):
         self.label = "F1 score"
 
     def get_metric(self, targets, predictions):
+        targets, predictions = self.to_numpy(targets, predictions)
         if self.logits == True:
             predictions = sigmoid(predictions)
         predictions = np.round(predictions)
