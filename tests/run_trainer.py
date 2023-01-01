@@ -40,23 +40,24 @@ MULTICLASS_CNN_PATH = os.path.join("tests", "models", "multiclass-cnn.pt")
 
 # Models ----------------------------------------------------------------------
 
-class BinaryCNN(nn.Module):
+class CNN(nn.Module):
 
     """
-    A binary CNN classifier.
+    A CNN classifier.
     """
 
-    def __init__(self):
+    def __init__(self, outputs, last_pool_size=16):
         super().__init__()
+        self.last_pool_size = last_pool_size
         self.dropout = nn.Dropout(0.2)
         self.conv1 = nn.Conv2d(3, 64, 7, padding="same")
         self.conv2 = nn.Conv2d(64, 128, 5, padding="same")
         self.conv3 = nn.Conv2d(128, 128, 3, padding="same")
         self.conv4 = nn.Conv2d(128, 256, 3, padding="same")
         self.conv5 = nn.Conv2d(256, 256, 3, padding="same")
-        self.fc1 = nn.Linear(256 * 62 * 62, 128)
+        self.fc1 = nn.Linear(256 * last_pool_size * last_pool_size, 128)
         self.fc2 = nn.Linear(128, 64)
-        self.fc3 = nn.Linear(64, 1)
+        self.fc3 = nn.Linear(64, outputs)
 
     def forward(self, x):
         x = F.relu(self.conv1(x))
@@ -67,41 +68,7 @@ class BinaryCNN(nn.Module):
         x = F.relu(self.conv4(x))
         x = F.relu(self.conv5(x))
         x = F.max_pool2d(x, 2)
-        x = torch.flatten(x, 1)
-        x = F.relu(self.fc1(x))
-        x = self.dropout(x)
-        x = F.relu(self.fc2(x))
-        x = self.dropout(x)
-        x = self.fc3(x)
-        return x
-
-class MulticlassCNN(nn.Module):
-
-    """
-    A multiclass CNN classifier.
-    """
-
-    def __init__(self):
-        super().__init__()
-        self.dropout = nn.Dropout(0.2)
-        self.conv1 = nn.Conv2d(3, 64, 7, padding="same")
-        self.conv2 = nn.Conv2d(64, 128, 5, padding="same")
-        self.conv3 = nn.Conv2d(128, 128, 3, padding="same")
-        self.conv4 = nn.Conv2d(128, 256, 3, padding="same")
-        self.conv5 = nn.Conv2d(256, 256, 3, padding="same")
-        self.fc1 = nn.Linear(256 * 62 * 62, 128)
-        self.fc2 = nn.Linear(128, 64)
-        self.fc3 = nn.Linear(64, 3)
-
-    def forward(self, x):
-        x = F.relu(self.conv1(x))
-        x = F.max_pool2d(x, 2)
-        x = F.relu(self.conv2(x))
-        x = F.relu(self.conv3(x))
-        x = F.max_pool2d(x, 2)
-        x = F.relu(self.conv4(x))
-        x = F.relu(self.conv5(x))
-        x = F.max_pool2d(x, 2)
+        x = F.adaptive_avg_pool2d(x, self.last_pool_size)
         x = torch.flatten(x, 1)
         x = F.relu(self.fc1(x))
         x = self.dropout(x)
@@ -132,7 +99,7 @@ def get_predict_transform():
 
 # Train binary CNN classifier -------------------------------------------------
 
-def train_binary_cnn(epochs=4):
+def train_binary_cnn(epochs=3):
 
     # Prepare data
     df = pd.read_csv(DATASET_CSV)
@@ -156,7 +123,7 @@ def train_binary_cnn(epochs=4):
         transform=get_predict_transform())
 
     # Create model, loss function and optimizer
-    model = BinaryCNN()
+    model = CNN(outputs=1)
     loss_func = nn.BCEWithLogitsLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.00001)
 
@@ -183,7 +150,7 @@ def train_binary_cnn(epochs=4):
 
 # Train multiclass CNN classifier ---------------------------------------------
 
-def train_multiclass_cnn(epochs=4):
+def train_multiclass_cnn(epochs=3):
 
     # Prepare data
     df = pd.read_csv(DATASET_CSV)
@@ -210,7 +177,7 @@ def train_multiclass_cnn(epochs=4):
         transform=get_predict_transform())
 
     # Create model, loss function and optimizer
-    model = MulticlassCNN()
+    model = CNN(outputs=3)
     loss_func = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.00001)
 
