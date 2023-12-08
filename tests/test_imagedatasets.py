@@ -5,6 +5,7 @@ Unit tests for image datasets.
 # Imports ---------------------------------------------------------------------
 
 import os
+import numpy as np
 import pandas as pd
 import torch
 import unittest
@@ -35,7 +36,7 @@ class CreateImageDataset(unittest.TestCase):
 
     def test_image_path_dataset_is_created_with_dataframe(self):
         ipd = ImagePathDataset(data=shapes_df)
-        self.assertTrue(ipd.data.equals(shapes_df))
+        self.assertTrue(np.array_equal(ipd.data, shapes_df.to_numpy()))
 
     def test_image_path_dataset_is_created_without_read_mode(self):
         ipd = ImagePathDataset(data=shapes_df)
@@ -60,7 +61,7 @@ class CreateImageDataset(unittest.TestCase):
     def test_image_path_dataset_is_created_with_transform(self):
         image_path = os.path.join(IMAGES_DIR, "image_1.png")
         image = read_image(image_path, ImageReadMode.RGB).type(torch.float32)
-        transform = Resize((256, 256))
+        transform = Resize((256, 256), antialias=True)
         ipd = ImagePathDataset(
             data=shapes_df, 
             transform=transform)

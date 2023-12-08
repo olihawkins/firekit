@@ -5,6 +5,7 @@ Image dataset classes.
 # Imports ---------------------------------------------------------------------
 
 import os
+import numpy as np
 import pandas as pd
 import torch
 
@@ -28,7 +29,7 @@ class ImagePathDataset(Dataset):
         transform=None, 
         target_transform=None):
 
-        self.data = data
+        self.data = data.to_numpy()
         self.transform = transform
         self.target_transform = target_transform
         self.read_mode = self.get_read_mode(read_mode)
@@ -40,7 +41,7 @@ class ImagePathDataset(Dataset):
 
         try:
 
-            image_path = self.data.iloc[idx, 0]
+            image_path = self.data[idx, 0]
             image = read_image(image_path, self.read_mode).type(torch.float32)
             labels = self.get_labels(idx)
                             
@@ -57,7 +58,9 @@ class ImagePathDataset(Dataset):
             raise ImageReadError(msg)
 
     def get_labels(self, idx):
-        return torch.tensor(self.data.iloc[idx, 1:], dtype=torch.float32)
+        return torch.tensor(
+            self.data[idx, 1:].astype(np.float32), 
+            dtype=torch.float32)
 
     @classmethod
     def get_read_mode(cls, read_mode):

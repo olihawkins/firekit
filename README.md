@@ -12,9 +12,9 @@ Install with `pip` or `pipenv` in the normal way.
 pip install firekit
 ```
 
-Use the `--extra-index-url` argument to install PyTorch for CUDA as a dependency. For example, use the following to get PyTorch with CUDA 11.3.
+Use the `---index-url` argument to install an older version of PyTorch for CUDA as a dependency. For example, use the following to get PyTorch with CUDA 11.8.
 
 ```zsh
-pip install firekit --extra-index-url https://download.pytorch.org/whl/cu113
+pip install firekit --index-url https://download.pytorch.org/whl/cu118
 ```
 
